@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-# BUILD Websockify (C version) & cleanup
+# Build Websockify (C version) & cleanup
 RUN apk add --no-cache --virtual .build-deps git openssl-dev musl-dev gcc make && \
     git clone https://github.com/novnc/websockify-other.git /wsckfy && \
     cd /wsckfy/c && \
@@ -10,7 +10,7 @@ RUN apk add --no-cache --virtual .build-deps git openssl-dev musl-dev gcc make &
     apk del .build-deps && \
     cd /
 
-# GET noVNC & cleanup
+# Get noVNC & cleanup
 RUN wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | \
     tar xz -C /usr/share/nginx/html --strip 1 && \
     rm -rf /usr/share/nginx/html/vendor/browser-es-module-loader/dist/babel-worker.js && \
@@ -34,9 +34,12 @@ RUN echo "#noVNC_control_bar_anchor {display:none !important;}" >> \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start.sh /start.sh
 
-# CONFIGURE default VNC endpoint
+# Configure default VNC endpoint
 ENV VNC_SERVER=localhost \
     VNC_PORT=5900
 
-# START
-CMD sh /start.sh
+# Start ngix not in daemon mode and websockify
+# then wait in order to stop in case any of the two crashes
+CMD nginx -g "daemon off;" &\
+    websockify 8888 $VNC_SERVER:$VNC_PORT &\
+    wait -n
