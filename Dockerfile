@@ -32,7 +32,6 @@ RUN echo "#noVNC_control_bar_anchor {display:none !important;}" >> \
 /usr/share/nginx/html/app/styles/base.css
 
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY start.sh /start.sh
 
 # Configure default VNC endpoint
 ENV VNC_SERVER=localhost \
