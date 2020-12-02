@@ -27,10 +27,6 @@ UI.forceSetting('reconnect_delay', 100);\
 UI.connect();\
 })" >> /usr/share/nginx/html/app/ui.js
 
-# Inject noVNC customizations (CSS: hide toolbar)
-RUN echo "#noVNC_control_bar_anchor {display:none !important;}" >> \
-/usr/share/nginx/html/app/styles/base.css
-
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Configure default VNC endpoint
@@ -39,6 +35,9 @@ ENV VNC_SERVER=localhost \
 
 # Start ngix not in daemon mode and websockify
 # then wait in order to stop in case any of the two crashes
-CMD nginx -g "daemon off;" &\
+CMD if [ $HIDE_NOVNC_BAR = true ] ; \
+        then echo "#noVNC_control_bar_anchor {display:none !important;}" \
+        >> $HTML_DATA/app/styles/base.css; fi; \
+    nginx -g "daemon off;" &\
     websockify 8888 $VNC_SERVER:$VNC_PORT &\
     wait -n
